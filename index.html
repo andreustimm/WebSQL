@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html manifest="offline.manifest">
+    <head>
+        <meta charset="utf-8">
+        <title>Exemplo Storage HTML5</title>
+    </head>
+    <body>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.js"></script>
+        <script type="text/javascript" src="js/migrator.js"></script>
+        <script type="text/javascript">
+
+            if (window.openDatabase) {
+
+                var db = openDatabase("banco2", "", "Exemplo Web SQL", 100000);
+                // now db is a database object: http://dev.w3.org/html5/webdatabase/#database
+
+                var M = new Migrator(db);
+                M.setDebugLevel(Migrator.DEBUG_HIGH);
+
+                M.migration(1, function(t) {
+                    // t here is a transaction object: http://dev.w3.org/html5/webdatabase/#sqltransaction
+                    t.executeSql("create table user(id integer primary key, name text)");
+                    t.executeSql("insert into user(name) values('Andreus')");
+                });
+
+                M.migration(2, function(t) {
+                    t.executeSql("alter table user add column fone text");
+                    t.executeSql("update user set fone = '5555-5555' where name == 'Andreus'");
+                });
+
+                M.migration(3, function(t) {
+                    t.executeSql("insert into user(name, fone) values('Mariana', '5555-1234')");
+                    t.executeSql("update user set fone = '5555-5556' where name == 'Andreus'");
+                });
+
+                // This executes the applicable transactions
+                M.execute();
+
+            } else {
+
+                $("p:eq(0)").text("Oops! HTML5 databases are not supported with your browser.");
+
+            }
+
+        </script>
+        <h1>Agenda</h1>
+        <p>Agenda de contatos...</p>
+        <table class="agenda" width="100%" cellpadding="5" border="1">
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Fone</th>
+            </tr>
+        </table>
+        <script type="text/javascript">
+            M.whenDone(function() {
+
+                db.transaction(function(t) {
+
+                    t.executeSql("select id, name, fone from user", [], function(t, res) {
+
+                        var rows = res.rows;
+                        var addressTable = $("table.agenda");
+
+                        for (var i = 0; i < rows.length; i++) {
+
+                            var row = rows.item(i);
+                            var domRow = $("<tr><td>"+row.id+"</td><td>"+row.name+"</td><td>"+row.fone+"</td></tr>");
+
+                            domRow.appendTo(addressTable);
+
+                        }
+
+                    });
+
+                });
+
+            });
+        </script>
+    </body>
+</html>
