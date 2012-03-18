@@ -33,6 +33,14 @@
                     t.executeSql("update user set fone = '5555-5556' where name == 'Andreus'");
                 });
 
+                M.migration(4, function(t) {
+                    t.executeSql("insert into user(name, fone) values('Beth', '2222-1234')");
+                });
+
+                M.migration(5, function(t) {
+                    t.executeSql("insert into user(name, fone) values('claudio', '6666-1234')");
+                });
+
                 // This executes the applicable transactions
                 M.execute();
 
@@ -42,40 +50,50 @@
 
             }
 
+            function buscar() {
+
+		    M.whenDone(function() {
+
+			db.transaction(function(t) {
+
+			    t.executeSql("select id, name, fone from user", [], function(t, res) {
+
+				$('table.agenda > tbody').html();
+                                var rows = res.rows;
+				var addressTable = $("table.agenda > tbody");
+
+				for (var i = 0; i < rows.length; i++) {
+
+				    var row = rows.item(i);
+				    var domRow = $("<tr><td>"+row.id+"</td><td>"+row.name+"</td><td>"+row.fone+"</td></tr>");
+
+				    domRow.appendTo(addressTable);
+
+				}
+
+			    });
+
+			});
+
+		    });
+	    }
+
+            $(function () {
+                 buscar();
+	    });
+
         </script>
         <h1>Agenda</h1>
-        <p>Agenda de contatos...</p>
         <table class="agenda" width="100%" cellpadding="5" border="1">
-            <tr>
-                <th>ID</th>
-                <th>Nome</th>
-                <th>Fone</th>
-            </tr>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Fone</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
         </table>
-        <script type="text/javascript">
-            M.whenDone(function() {
-
-                db.transaction(function(t) {
-
-                    t.executeSql("select id, name, fone from user", [], function(t, res) {
-
-                        var rows = res.rows;
-                        var addressTable = $("table.agenda");
-
-                        for (var i = 0; i < rows.length; i++) {
-
-                            var row = rows.item(i);
-                            var domRow = $("<tr><td>"+row.id+"</td><td>"+row.name+"</td><td>"+row.fone+"</td></tr>");
-
-                            domRow.appendTo(addressTable);
-
-                        }
-
-                    });
-
-                });
-
-            });
-        </script>
     </body>
 </html>
